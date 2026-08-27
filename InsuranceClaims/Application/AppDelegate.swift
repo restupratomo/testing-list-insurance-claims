@@ -46,5 +46,12 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         // Debug logging must never ship to production — it would print view
         // hierarchy details to the console on every device.
         IQKeyboardManager.shared.enableDebugging = false
+        // The only text input in the app is the claims search bar, which
+        // doesn't need a Done/Next accessory toolbar. IQKeyboardManagerSwift
+        // 6.5.12's toolbar builder crashes (EXC_BAD_INSTRUCTION in
+        // addKeyboardToolbarWithTarget) when it reaches into UISearchBar's
+        // private internals under the current SDK, so skip building it
+        // entirely rather than hitting that path.
+        IQKeyboardManager.shared.enableAutoToolbar = false
     }
 }
