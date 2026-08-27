@@ -1,4 +1,5 @@
 import AsyncDisplayKit
+import Localize_Swift
 
 /// A single row in the claims list: bold title, a two-line description
 /// preview, and the claim/claimant identifiers, laid out with Texture's
@@ -38,7 +39,7 @@ final class ClaimCellNode: ASCellNode {
         descriptionNode.truncationMode = .byTruncatingTail
 
         metadataNode.attributedText = NSAttributedString(
-            string: "Claim #\(claim.id) · Claimant #\(claim.claimantId)",
+            string: "claim_row.metadata".localizedFormat(claim.id, claim.claimantId),
             attributes: [
                 .font: UIFont.preferredFont(forTextStyle: .caption1),
                 .foregroundColor: UIColor.adaptiveTertiaryLabel

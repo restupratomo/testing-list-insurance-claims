@@ -1,10 +1,17 @@
 import AsyncDisplayKit
+import Localize_Swift
 import RxSwift
 
 /// Claims list screen. Hosts an `ASCollectionNode` for cell-content prepared
 /// off the main thread, a search bar for filtering, and a footer spinner for
-/// pagination — all driven by `ClaimsListViewModel`'s Rx relays.
+/// pagination — all driven by `ClaimsListViewModel`'s Rx relays. Localized
+/// strings follow the device's system language (Settings > General >
+/// Language & Region); there is no in-app language switch.
 final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
+
+    /// How far down the list the user must scroll before the "back to top"
+    /// button appears.
+    private static let backToTopThreshold: CGFloat = 400
 
     private let viewModel: ClaimsListViewModel
     private let collectionNode: ASCollectionNode
@@ -23,6 +30,21 @@ final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
         indicator.color = .adaptiveLabel
         return indicator
     }()
+    /// Internal rather than private so specs can assert on `isHidden`
+    /// directly instead of driving a real scroll gesture.
+    let backToTopButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("claims_list.back_to_top".localized(), for: .normal)
+        button.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
+        button.backgroundColor = .adaptiveLabel
+        button.setTitleColor(.adaptiveBackground, for: .normal)
+        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 18, bottom: 10, right: 18)
+        button.layer.cornerRadius = 20
+        button.clipsToBounds = true
+        button.isHidden = true
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
     private let disposeBag = DisposeBag()
 
     init(viewModel: ClaimsListViewModel) {
@@ -34,7 +56,7 @@ final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
         self.collectionNode = ASCollectionNode(collectionViewLayout: layout)
 
         super.init(node: collectionNode)
-        title = "Insurance Claims"
+        title = "claims_list.title".localized()
     }
 
     required init?(coder: NSCoder) {
@@ -51,6 +73,7 @@ final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
 
         configureSearchController()
         configureLoadingIndicator()
+        configureBackToTopButton()
         bindViewModel()
 
         viewModel.loadFirstPage()
@@ -59,7 +82,7 @@ final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
     private func configureSearchController() {
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = "Search claims"
+        searchController.searchBar.placeholder = "claims_list.search_placeholder".localized()
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
         definesPresentationContext = true
@@ -73,6 +96,22 @@ final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
+    }
+
+    private func configureBackToTopButton() {
+        backToTopButton.addTarget(self, action: #selector(backToTopTapped), for: .touchUpInside)
+        view.addSubview(backToTopButton)
+        NSLayoutConstraint.activate([
+            backToTopButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            backToTopButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
+        ])
+    }
+
+    @objc private func backToTopTapped() {
+        collectionNode.view.setContentOffset(
+            CGPoint(x: 0, y: -collectionNode.view.adjustedContentInset.top),
+            animated: true
+        )
     }
 
     private func bindViewModel() {
@@ -103,9 +142,15 @@ final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
     }
 
     private func presentError(_ message: String) {
-        let alert = UIAlertController(title: "Unable to Load Claims", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Retry", style: .default, handler: { [weak self] _ in self?.retryTapped() }))
-        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+        let alert = UIAlertController(
+            title: "claims_list.error_alert.title".localized(),
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "action.retry".localized(), style: .default, handler: { [weak self] _ in
+            self?.retryTapped()
+        }))
+        alert.addAction(UIAlertAction(title: "action.ok".localized(), style: .cancel))
         present(alert, animated: true)
     }
 
@@ -154,6 +199,13 @@ extension ClaimsListViewController: ASCollectionDelegateFlowLayout {
             min: CGSize(width: width, height: 0),
             max: CGSize(width: width, height: .greatestFiniteMagnitude)
         )
+    }
+
+    // Texture forwards this to its async delegate via `respondsToSelector:`
+    // rather than declaring it in ASCollectionDelegate itself, so it must be
+    // explicitly `@objc` to be picked up from Swift.
+    @objc func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        backToTopButton.isHidden = scrollView.contentOffset.y <= Self.backToTopThreshold
     }
 }
 

@@ -1,4 +1,5 @@
 import Foundation
+import Localize_Swift
 
 /// Errors surfaced by the networking layer, in terms the UI can present directly.
 enum NetworkError: Error, Equatable {
@@ -12,17 +13,17 @@ enum NetworkError: Error, Equatable {
     var userMessage: String {
         switch self {
         case .invalidURL:
-            return "The request could not be built. Please try again."
+            return "network_error.invalid_url".localized()
         case .noConnection:
-            return "No internet connection. Please check your network and try again."
+            return "network_error.no_connection".localized()
         case .server(let statusCode):
-            return "The server returned an error (code \(statusCode)). Please try again later."
+            return "network_error.server".localizedFormat(statusCode)
         case .decoding:
-            return "We couldn't read the claims data returned by the server."
+            return "network_error.decoding".localized()
         case .sslPinningFailed:
-            return "We couldn't verify the server's identity. For your security the request was blocked."
+            return "network_error.ssl_pinning_failed".localized()
         case .unknown:
-            return "Something went wrong. Please try again."
+            return "network_error.unknown".localized()
         }
     }
 }

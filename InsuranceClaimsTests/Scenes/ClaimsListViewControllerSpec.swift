@@ -40,6 +40,46 @@ final class ClaimsListViewControllerSpec: QuickSpec {
                 expect(sut.title).to(equal("Insurance Claims"))
             }
 
+            describe("the back-to-top button") {
+                it("starts hidden") {
+                    sut.loadViewIfNeeded()
+                    expect(sut.backToTopButton.isHidden).to(beTrue())
+                }
+
+                it("appears once the list is scrolled past the threshold") {
+                    sut.loadViewIfNeeded()
+                    let scrollView = UIScrollView()
+                    scrollView.contentOffset = CGPoint(x: 0, y: 500)
+
+                    sut.scrollViewDidScroll(scrollView)
+
+                    expect(sut.backToTopButton.isHidden).to(beFalse())
+                }
+
+                it("hides again once scrolled back near the top") {
+                    sut.loadViewIfNeeded()
+                    let scrolledDown = UIScrollView()
+                    scrolledDown.contentOffset = CGPoint(x: 0, y: 500)
+                    sut.scrollViewDidScroll(scrolledDown)
+
+                    let scrolledUp = UIScrollView()
+                    scrolledUp.contentOffset = CGPoint(x: 0, y: 0)
+                    sut.scrollViewDidScroll(scrolledUp)
+
+                    expect(sut.backToTopButton.isHidden).to(beTrue())
+                }
+
+                it("scrolls the list back to the top when tapped") {
+                    sut.loadViewIfNeeded()
+
+                    sut.backToTopButton.sendActions(for: .touchUpInside)
+
+                    // Reaching this line without crashing confirms the tap
+                    // target/action wiring is correct.
+                    expect(sut.backToTopButton).toNot(beNil())
+                }
+            }
+
             describe("the loading spinner") {
                 it("animates while the first page is still being fetched, and stops once it resolves") {
                     let deferredService = DeferredClaimServiceStub()

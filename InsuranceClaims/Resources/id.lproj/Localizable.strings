@@ -1,0 +1,44 @@
+/* Claims list screen navigation title */
+"claims_list.title" = "Klaim Asuransi";
+
+/* Placeholder text in the claims search bar */
+"claims_list.search_placeholder" = "Cari klaim";
+
+/* Title of the alert shown when a page of claims fails to load */
+"claims_list.error_alert.title" = "Gagal Memuat Klaim";
+
+/* Floating button shown once the user has scrolled down the list, scrolls back to the top when tapped */
+"claims_list.back_to_top" = "Kembali ke Atas";
+
+/* Button that retries loading claims after a failure */
+"action.retry" = "Coba Lagi";
+
+/* Dismiss button on an alert */
+"action.ok" = "OK";
+
+/* Claim row metadata, e.g. "Klaim #12 · Pemohon #4". %1$d is the claim id, %2$d is the claimant id */
+"claim_row.metadata" = "Klaim #%1$d · Pemohon #%2$d";
+
+/* Claim detail screen navigation title, e.g. "Klaim #12". %d is the claim id */
+"claim_detail.title" = "Klaim #%d";
+
+/* Claim detail screen metadata line, e.g. "ID Klaim: 12    ID Pemohon: 4". %1$d is the claim id, %2$d is the claimant id */
+"claim_detail.metadata" = "ID Klaim: %1$d    ID Pemohon: %2$d";
+
+/* Shown when a request URL couldn't be built */
+"network_error.invalid_url" = "Permintaan tidak dapat dibuat. Silakan coba lagi.";
+
+/* Shown when there is no internet connection */
+"network_error.no_connection" = "Tidak ada koneksi internet. Periksa jaringan Anda dan coba lagi.";
+
+/* Shown when the server returns a non-2xx status code. %d is the HTTP status code */
+"network_error.server" = "Server mengembalikan kesalahan (kode %d). Silakan coba lagi nanti.";
+
+/* Shown when the server's response couldn't be parsed */
+"network_error.decoding" = "Kami tidak dapat membaca data klaim yang dikembalikan oleh server.";
+
+/* Shown when the server's TLS certificate doesn't match the pinned certificate */
+"network_error.ssl_pinning_failed" = "Kami tidak dapat memverifikasi identitas server. Demi keamanan Anda, permintaan diblokir.";
+
+/* Shown for any other, unclassified network failure */
+"network_error.unknown" = "Terjadi kesalahan. Silakan coba lagi.";

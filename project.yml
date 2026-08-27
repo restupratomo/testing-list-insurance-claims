@@ -4,6 +4,7 @@ options:
   deploymentTarget:
     iOS: "12.0"
   createIntermediateGroups: true
+  developmentLanguage: en
 
 settings:
   base:
@@ -36,6 +37,10 @@ targets:
         UIRequiresFullScreen: false
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations:
+          - en
+          - id
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: false
           NSExceptionDomains:
@@ -54,6 +59,12 @@ targets:
       - framework: Carthage/Build/RxSwift.xcframework
         embed: true
       - framework: Carthage/Build/RxRelay.xcframework
+        embed: true
+      - framework: Carthage/Build/Localize_Swift.xcframework
+        embed: true
+      - framework: Carthage/Build/IQKeyboardManagerSwift.xcframework
+        embed: true
+      - framework: Carthage/Build/IQKeyboardManager.xcframework
         embed: true
     prebuildScripts:
       - script: |
@@ -84,6 +95,12 @@ targets:
         embed: true
       - framework: Carthage/Build/RxRelay.xcframework
         embed: true
+      - framework: Carthage/Build/Localize_Swift.xcframework
+        embed: true
+      - framework: Carthage/Build/IQKeyboardManagerSwift.xcframework
+        embed: true
+      - framework: Carthage/Build/IQKeyboardManager.xcframework
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.restu.insuranceclaims.tests
@@ -104,6 +121,12 @@ targets:
       - framework: Carthage/Build/RxSwift.xcframework
         embed: true
       - framework: Carthage/Build/RxRelay.xcframework
+        embed: true
+      - framework: Carthage/Build/Localize_Swift.xcframework
+        embed: true
+      - framework: Carthage/Build/IQKeyboardManagerSwift.xcframework
+        embed: true
+      - framework: Carthage/Build/IQKeyboardManager.xcframework
         embed: true
     settings:
       base:

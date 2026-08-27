@@ -1,3 +1,4 @@
+import IQKeyboardManagerSwift
 import UIKit
 
 @UIApplicationMain
@@ -10,6 +11,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        configureKeyboardManager()
+
         let window = UIWindow(frame: UIScreen.main.bounds)
         self.window = window
 
@@ -29,5 +32,16 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
         return true
+    }
+
+    /// Keeps the keyboard from covering the focused text field/view (e.g. the
+    /// claims search bar) by shifting the view up automatically, instead of
+    /// each screen having to implement its own keyboard-avoidance logic.
+    private func configureKeyboardManager() {
+        IQKeyboardManager.shared.enable = true
+        IQKeyboardManager.shared.shouldResignOnTouchOutside = true
+        // Debug logging must never ship to production — it would print view
+        // hierarchy details to the console on every device.
+        IQKeyboardManager.shared.enableDebugging = false
     }
 }

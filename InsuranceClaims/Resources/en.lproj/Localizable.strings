@@ -1,0 +1,44 @@
+/* Claims list screen navigation title */
+"claims_list.title" = "Insurance Claims";
+
+/* Placeholder text in the claims search bar */
+"claims_list.search_placeholder" = "Search claims";
+
+/* Title of the alert shown when a page of claims fails to load */
+"claims_list.error_alert.title" = "Unable to Load Claims";
+
+/* Floating button shown once the user has scrolled down the list, scrolls back to the top when tapped */
+"claims_list.back_to_top" = "Back to Top";
+
+/* Button that retries loading claims after a failure */
+"action.retry" = "Retry";
+
+/* Dismiss button on an alert */
+"action.ok" = "OK";
+
+/* Claim row metadata, e.g. "Claim #12 · Claimant #4". %1$d is the claim id, %2$d is the claimant id */
+"claim_row.metadata" = "Claim #%1$d · Claimant #%2$d";
+
+/* Claim detail screen navigation title, e.g. "Claim #12". %d is the claim id */
+"claim_detail.title" = "Claim #%d";
+
+/* Claim detail screen metadata line, e.g. "Claim ID: 12    Claimant ID: 4". %1$d is the claim id, %2$d is the claimant id */
+"claim_detail.metadata" = "Claim ID: %1$d    Claimant ID: %2$d";
+
+/* Shown when a request URL couldn't be built */
+"network_error.invalid_url" = "The request could not be built. Please try again.";
+
+/* Shown when there is no internet connection */
+"network_error.no_connection" = "No internet connection. Please check your network and try again.";
+
+/* Shown when the server returns a non-2xx status code. %d is the HTTP status code */
+"network_error.server" = "The server returned an error (code %d). Please try again later.";
+
+/* Shown when the server's response couldn't be parsed */
+"network_error.decoding" = "We couldn't read the claims data returned by the server.";
+
+/* Shown when the server's TLS certificate doesn't match the pinned certificate */
+"network_error.ssl_pinning_failed" = "We couldn't verify the server's identity. For your security the request was blocked.";
+
+/* Shown for any other, unclassified network failure */
+"network_error.unknown" = "Something went wrong. Please try again.";
