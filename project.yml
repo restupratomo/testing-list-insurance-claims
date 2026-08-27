@@ -146,3 +146,15 @@ schemes:
       targets:
         - InsuranceClaimsTests
         - InsuranceClaimsAPITests
+
+  InsuranceClaimsTest:
+    build:
+      targets:
+        InsuranceClaims: all
+        InsuranceClaimsTests: [test]
+    test:
+      gatherCoverageData: true
+      coverageTargets:
+        - InsuranceClaims
+      targets:
+        - InsuranceClaimsTests

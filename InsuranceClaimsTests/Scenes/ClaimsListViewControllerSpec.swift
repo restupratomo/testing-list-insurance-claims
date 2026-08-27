@@ -138,6 +138,15 @@ final class ClaimsListViewControllerSpec: QuickSpec {
                     expect(viewModel.visibleClaims.map { $0.id }).toEventually(equal([2]), timeout: .seconds(2))
                 }
 
+                it("treats a nil search bar text as an empty query, clearing any filter") {
+                    let searchController = UISearchController(searchResultsController: nil)
+                    searchController.searchBar.text = nil
+
+                    sut.updateSearchResults(for: searchController)
+
+                    expect(viewModel.visibleClaims.map { $0.id }).toEventually(equal([1, 2, 3]), timeout: .seconds(2))
+                }
+
                 it("forwards a row tap to the view model as a selection") {
                     let node = sut.node!
                     let indexPath = IndexPath(item: 0, section: 0)
@@ -200,6 +209,26 @@ final class ClaimsListViewControllerSpec: QuickSpec {
                     service.result = .success([Claim(claimantId: 1, id: 1, title: "Retried", description: "d")])
 
                     sut.retryTapped()
+
+                    expect(viewModel.visibleClaims.map { $0.title }).to(equal(["Retried"]))
+                }
+
+                it("wires the alert's Retry action to retryTapped, invoked as UIKit would on a real tap") {
+                    sut.loadViewIfNeeded()
+                    service.result = .success([Claim(claimantId: 1, id: 1, title: "Retried", description: "d")])
+
+                    let alert = sut.makeErrorAlert("some error")
+                    let retryAction = alert.actions.first { $0.style == .default }!
+
+                    // UIAlertAction stores its handler as a private "handler" ivar rather
+                    // than a public property, so `value(forKey:)` hands back an Objective-C
+                    // block that Swift can't `as?`-cast directly — it has to be rebound to
+                    // its block signature to be called, same as UIKit calls it internally.
+                    let handler = unsafeBitCast(
+                        retryAction.value(forKey: "handler") as AnyObject,
+                        to: (@convention(block) (UIAlertAction) -> Void).self
+                    )
+                    handler(retryAction)
 
                     expect(viewModel.visibleClaims.map { $0.title }).to(equal(["Retried"]))
                 }

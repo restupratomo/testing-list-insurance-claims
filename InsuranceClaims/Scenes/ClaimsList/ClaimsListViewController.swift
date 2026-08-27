@@ -145,6 +145,13 @@ final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
     }
 
     private func presentError(_ message: String) {
+        present(makeErrorAlert(message), animated: true)
+    }
+
+    /// Split out from `presentError(_:)` so specs can fetch the alert and
+    /// invoke its Retry action's handler directly, since UIKit won't deliver
+    /// a real tap without a live window.
+    func makeErrorAlert(_ message: String) -> UIAlertController {
         let alert = UIAlertController(
             title: "claims_list.error_alert.title".localized(),
             message: message,
@@ -154,7 +161,7 @@ final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
             self?.retryTapped()
         }))
         alert.addAction(UIAlertAction(title: "action.ok".localized(), style: .cancel))
-        present(alert, animated: true)
+        return alert
     }
 
     /// Split out from the alert action's closure so specs can call it
