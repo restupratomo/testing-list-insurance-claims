@@ -70,6 +70,9 @@ final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
         collectionNode.backgroundColor = .adaptiveBackground
         collectionNode.dataSource = self
         collectionNode.delegate = self
+        // Shown on the claim detail screen's back button once pushed; an
+        // empty title collapses it down to just the chevron.
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
         configureSearchController()
         configureLoadingIndicator()

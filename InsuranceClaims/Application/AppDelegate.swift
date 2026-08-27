@@ -18,6 +18,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
         let navigationController = UINavigationController()
         navigationController.navigationBar.prefersLargeTitles = true
+        // The default back-button blue reads as an accent color the rest of
+        // the app doesn't use; match the label color instead.
+        navigationController.navigationBar.tintColor = .adaptiveLabel
 
         let apiClient = APIClient(
             baseURL: AppEnvironment.claimsBaseURL,
