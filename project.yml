@@ -1,0 +1,91 @@
+name: InsuranceClaims
+options:
+  bundleIdPrefix: com.restu.insuranceclaims
+  deploymentTarget:
+    iOS: "12.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: 5.0
+    ENABLE_BITCODE: NO
+    FRAMEWORK_SEARCH_PATHS: "$(PROJECT_DIR)/Carthage/Build/iOS"
+    STRIP_INSTALLED_PRODUCT: YES
+    DEAD_CODE_STRIPPING: YES
+  configs:
+    Release:
+      SWIFT_COMPILATION_MODE: wholemodule
+      STRIP_STYLE: all
+      SWIFT_OPTIMIZATION_LEVEL: "-O"
+
+targets:
+  InsuranceClaims:
+    type: application
+    platform: iOS
+    deploymentTarget: "12.0"
+    sources:
+      - path: InsuranceClaims
+    info:
+      path: InsuranceClaims/Info.plist
+      properties:
+        UILaunchStoryboardName: LaunchScreen
+        UIRequiresFullScreen: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: false
+          NSExceptionDomains:
+            jsonplaceholder.typicode.com:
+              NSExceptionRequiresForwardSecrecy: true
+              NSExceptionMinimumTLSVersion: TLSv1.2
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.restu.insuranceclaims
+        TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - framework: Carthage/Build/iOS/Texture.xcframework
+        embed: true
+
+  InsuranceClaimsTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "12.0"
+    sources:
+      - path: InsuranceClaimsTests
+    dependencies:
+      - target: InsuranceClaims
+      - framework: Carthage/Build/iOS/Quick.xcframework
+        embed: true
+      - framework: Carthage/Build/iOS/Nimble.xcframework
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.restu.insuranceclaims.tests
+
+  InsuranceClaimsAPITests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "12.0"
+    sources:
+      - path: InsuranceClaimsAPITests
+    dependencies:
+      - target: InsuranceClaims
+      - framework: Carthage/Build/iOS/Quick.xcframework
+        embed: true
+      - framework: Carthage/Build/iOS/Nimble.xcframework
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.restu.insuranceclaims.apitests
+
+schemes:
+  InsuranceClaims:
+    build:
+      targets:
+        InsuranceClaims: all
+        InsuranceClaimsTests: [test]
+        InsuranceClaimsAPITests: [test]
+    test:
+      targets:
+        - InsuranceClaimsTests
+        - InsuranceClaimsAPITests
