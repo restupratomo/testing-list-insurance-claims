@@ -9,7 +9,7 @@ settings:
   base:
     SWIFT_VERSION: 5.0
     ENABLE_BITCODE: NO
-    FRAMEWORK_SEARCH_PATHS: "$(PROJECT_DIR)/Carthage/Build/iOS"
+    FRAMEWORK_SEARCH_PATHS: "$(PROJECT_DIR)/Carthage/Build"
     STRIP_INSTALLED_PRODUCT: YES
     DEAD_CODE_STRIPPING: YES
   configs:
@@ -17,6 +17,10 @@ settings:
       SWIFT_COMPILATION_MODE: wholemodule
       STRIP_STYLE: all
       SWIFT_OPTIMIZATION_LEVEL: "-O"
+      GCC_SYMBOLS_PRIVATE_EXTERN: YES
+      GCC_GENERATE_DEBUGGING_SYMBOLS: NO
+      DEBUG_INFORMATION_FORMAT: dwarf
+      SWIFT_REFLECTION_METADATA_LEVEL: none
 
 targets:
   InsuranceClaims:
@@ -43,7 +47,9 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.restu.insuranceclaims
         TARGETED_DEVICE_FAMILY: "1,2"
     dependencies:
-      - framework: Carthage/Build/iOS/Texture.xcframework
+      - framework: Carthage/Build/AsyncDisplayKit.xcframework
+        embed: true
+      - framework: Carthage/Build/Alamofire.xcframework
         embed: true
 
   InsuranceClaimsTests:
@@ -54,9 +60,9 @@ targets:
       - path: InsuranceClaimsTests
     dependencies:
       - target: InsuranceClaims
-      - framework: Carthage/Build/iOS/Quick.xcframework
+      - framework: Carthage/Build/Quick.xcframework
         embed: true
-      - framework: Carthage/Build/iOS/Nimble.xcframework
+      - framework: Carthage/Build/Nimble.xcframework
         embed: true
     settings:
       base:
@@ -70,9 +76,9 @@ targets:
       - path: InsuranceClaimsAPITests
     dependencies:
       - target: InsuranceClaims
-      - framework: Carthage/Build/iOS/Quick.xcframework
+      - framework: Carthage/Build/Quick.xcframework
         embed: true
-      - framework: Carthage/Build/iOS/Nimble.xcframework
+      - framework: Carthage/Build/Nimble.xcframework
         embed: true
     settings:
       base:
