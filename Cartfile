@@ -2,3 +2,4 @@ github "TextureGroup/Texture" ~> 3.2
 github "Quick/Quick" ~> 7.0
 github "Quick/Nimble" ~> 12.0
 github "Alamofire/Alamofire" ~> 5.8
+github "ReactiveX/RxSwift" ~> 6.7

@@ -89,7 +89,10 @@ final class ClaimsListViewModelSpec: QuickSpec {
             }
 
             context("search") {
-                it("filters visible claims by title or description, case-insensitively") {
+                // Search is debounced (300ms) so the filter isn't recomputed
+                // on every keystroke; toEventually polls until that window
+                // has elapsed and the filter has actually been applied.
+                it("filters visible claims by title or description, case-insensitively, once debounced") {
                     let claims = [
                         makeClaim(id: 1, title: "Vehicle damage", description: "Hit from behind"),
                         makeClaim(id: 2, title: "Water damage", description: "Pipe burst in kitchen")
@@ -99,7 +102,7 @@ final class ClaimsListViewModelSpec: QuickSpec {
 
                     sut.search("vehicle")
 
-                    expect(sut.visibleClaims).to(equal([claims[0]]))
+                    expect(sut.visibleClaims).toEventually(equal([claims[0]]), timeout: .seconds(2))
                 }
 
                 it("restores the full list when the search query is cleared") {
@@ -107,10 +110,39 @@ final class ClaimsListViewModelSpec: QuickSpec {
                     service.pages[1] = .success(claims)
                     sut.loadFirstPage()
 
-                    sut.search("vehicle")
-                    sut.search("")
+                    sut.search("nonexistent")
+                    expect(sut.visibleClaims).toEventually(equal([]), timeout: .seconds(2))
 
+                    sut.search("")
+                    expect(sut.visibleClaims).toEventually(equal(claims), timeout: .seconds(2))
+                }
+
+                it("ignores queries shorter than the minimum search length") {
+                    let claims = [makeClaim(id: 1, title: "Vehicle damage")]
+                    service.pages[1] = .success(claims)
+                    sut.loadFirstPage()
+
+                    sut.search("ve")
+
+                    // Give the debounce window time to elapse; a query this
+                    // short should never even reach the filtering stage.
+                    var didApplyFilter = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { didApplyFilter = true }
+                    expect(didApplyFilter).toEventually(beTrue(), timeout: .seconds(2))
                     expect(sut.visibleClaims).to(equal(claims))
+                }
+
+                it("applies a query right at the minimum search length") {
+                    let claims = [
+                        makeClaim(id: 1, title: "Vehicle damage"),
+                        makeClaim(id: 2, title: "Water damage")
+                    ]
+                    service.pages[1] = .success(claims)
+                    sut.loadFirstPage()
+
+                    sut.search("veh")
+
+                    expect(sut.visibleClaims).toEventually(equal([claims[0]]), timeout: .seconds(2))
                 }
             }
         }

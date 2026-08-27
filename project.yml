@@ -51,6 +51,10 @@ targets:
         embed: true
       - framework: Carthage/Build/Alamofire.xcframework
         embed: true
+      - framework: Carthage/Build/RxSwift.xcframework
+        embed: true
+      - framework: Carthage/Build/RxRelay.xcframework
+        embed: true
 
   InsuranceClaimsTests:
     type: bundle.unit-test
@@ -68,6 +72,10 @@ targets:
         embed: true
       - framework: Carthage/Build/Alamofire.xcframework
         embed: true
+      - framework: Carthage/Build/RxSwift.xcframework
+        embed: true
+      - framework: Carthage/Build/RxRelay.xcframework
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.restu.insuranceclaims.tests
@@ -84,6 +92,10 @@ targets:
       - framework: Carthage/Build/Quick.xcframework
         embed: true
       - framework: Carthage/Build/Nimble.xcframework
+        embed: true
+      - framework: Carthage/Build/RxSwift.xcframework
+        embed: true
+      - framework: Carthage/Build/RxRelay.xcframework
         embed: true
     settings:
       base:

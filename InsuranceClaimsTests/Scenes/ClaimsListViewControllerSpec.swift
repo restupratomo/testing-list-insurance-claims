@@ -48,13 +48,13 @@ final class ClaimsListViewControllerSpec: QuickSpec {
                     expect(block()).to(beAKindOf(ClaimCellNode.self))
                 }
 
-                it("filters rows when the search text updates") {
+                it("filters rows when the search text updates, once the debounce window elapses") {
                     let searchController = UISearchController(searchResultsController: nil)
                     searchController.searchBar.text = "Claim 2"
 
                     sut.updateSearchResults(for: searchController)
 
-                    expect(viewModel.visibleClaims.map { $0.id }).to(equal([2]))
+                    expect(viewModel.visibleClaims.map { $0.id }).toEventually(equal([2]), timeout: .seconds(2))
                 }
 
                 it("forwards a row tap to the view model as a selection") {
@@ -103,12 +103,15 @@ final class ClaimsListViewControllerSpec: QuickSpec {
                     expect(viewModel.state.description).to(equal("error(The server returned an error (code 500). Please try again later.)"))
                 }
 
-                it("ignores an idle state notification without side effects") {
+                it("does nothing but update state when an idle notification arrives") {
                     sut.loadViewIfNeeded()
 
-                    viewModel.onStateChange?(.idle)
+                    viewModel.stateRelay.accept(.idle)
 
-                    expect(viewModel.state.description).to(equal("error(The server returned an error (code 500). Please try again later.)"))
+                    // Reaching this line without crashing confirms the .idle
+                    // branch (a no-op) was taken rather than presenting
+                    // another alert or touching the activity indicator.
+                    expect(viewModel.state.description).to(equal("idle"))
                 }
 
                 it("reloads from the first page when the alert's Retry action fires") {

@@ -1,14 +1,16 @@
 import AsyncDisplayKit
+import RxSwift
 
 /// Claims list screen. Hosts an `ASCollectionNode` for cell-content prepared
 /// off the main thread, a search bar for filtering, and a footer spinner for
-/// pagination — all driven by `ClaimsListViewModel`.
+/// pagination — all driven by `ClaimsListViewModel`'s Rx relays.
 final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
 
     private let viewModel: ClaimsListViewModel
     private let collectionNode: ASCollectionNode
     private let searchController = UISearchController(searchResultsController: nil)
     private let activityIndicator = UIActivityIndicatorView(style: .gray)
+    private let disposeBag = DisposeBag()
 
     init(viewModel: ClaimsListViewModel) {
         self.viewModel = viewModel
@@ -61,24 +63,30 @@ final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
     }
 
     private func bindViewModel() {
-        viewModel.onStateChange = { [weak self] state in
-            guard let self = self else { return }
-            switch state {
-            case .idle:
-                break
-            case .loading where self.viewModel.claims.isEmpty:
-                self.activityIndicator.startAnimating()
-            case .loading, .loaded:
-                self.activityIndicator.stopAnimating()
-            case .error(let message):
-                self.activityIndicator.stopAnimating()
-                self.presentError(message)
-            }
-        }
+        viewModel.stateObservable
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] state in
+                guard let self = self else { return }
+                switch state {
+                case .idle:
+                    break
+                case .loading where self.viewModel.claims.isEmpty:
+                    self.activityIndicator.startAnimating()
+                case .loading, .loaded:
+                    self.activityIndicator.stopAnimating()
+                case .error(let message):
+                    self.activityIndicator.stopAnimating()
+                    self.presentError(message)
+                }
+            })
+            .disposed(by: disposeBag)
 
-        viewModel.onClaimsChange = { [weak self] in
-            self?.collectionNode.reloadData()
-        }
+        viewModel.visibleClaimsObservable
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] _ in
+                self?.collectionNode.reloadData()
+            })
+            .disposed(by: disposeBag)
     }
 
     private func presentError(_ message: String) {
