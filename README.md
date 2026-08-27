@@ -48,6 +48,19 @@ Run the `InsuranceClaims` scheme to launch the app, or `Cmd+U` to run the
 `InsuranceClaimsTests` (unit) and `InsuranceClaimsAPITests` (functional,
 hits the live API) targets.
 
+## Dependencies
+
+All via Carthage ([`Cartfile`](Cartfile)), built as xcframeworks:
+
+| Library | Used for |
+| --- | --- |
+| [Texture](https://github.com/TextureGroup/Texture) | The UI layer (`AsyncDisplayKit`) — off-main-thread layout for the claims list and detail screen |
+| [Alamofire](https://github.com/Alamofire/Alamofire) | Networking, including certificate pinning via `ServerTrustManager` |
+| [RxSwift](https://github.com/ReactiveX/RxSwift) | Debounced search, and exposing view model state as observables |
+| [Localize-Swift](https://github.com/marmelroy/Localize-Swift) | English/Indonesian localized strings |
+| [IQKeyboardManager](https://github.com/hackiftekhar/IQKeyboardManager) | App-wide keyboard avoidance |
+| [Quick](https://github.com/Quick/Quick) / [Nimble](https://github.com/Quick/Nimble) | Test-only — BDD-style specs and matchers |
+
 ## Architecture
 
 MVVM-C:
