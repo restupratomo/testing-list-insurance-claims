@@ -32,6 +32,22 @@ final class APIClientSpec: QuickSpec {
                 }
             }
 
+            context("when the endpoint cannot be turned into a request URL") {
+                it("completes with an invalidURL error and never touches the network") {
+                    sut.urlBuilder = { _, _ in nil }
+
+                    var result: Result<[Claim], NetworkError>?
+                    sut.request(Endpoint.claims(page: 1, pageSize: 10), decodingTo: [Claim].self) { result = $0 }
+
+                    expect(result).toNot(beNil())
+                    if case .failure(let error) = result {
+                        expect(error).to(equal(.invalidURL))
+                    } else {
+                        fail("expected a failure result")
+                    }
+                }
+            }
+
             context("when the server returns a decodable, successful response") {
                 it("completes with the decoded value") {
                     let json = Data("""

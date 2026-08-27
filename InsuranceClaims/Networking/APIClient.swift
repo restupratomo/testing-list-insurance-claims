@@ -15,6 +15,13 @@ final class APIClient: APIClientProtocol {
     private let baseURL: URL
     private let session: Session
 
+    /// Builds the request URL from an endpoint; overridable so specs can
+    /// force the "endpoint couldn't be turned into a URL" branch below.
+    /// `URLComponents(url:resolvingAgainstBaseURL:)` doesn't fail for any
+    /// realistic endpoint (path components are auto-percent-encoded), so
+    /// there's no way to hit that guard with a real `Endpoint` value.
+    var urlBuilder: (Endpoint, URL) -> URL? = { $0.url(relativeTo: $1) }
+
     /// - Parameter pinnedHost: when set, Alamofire will refuse to complete any
     ///   request to this host unless its certificate matches the pin in
     ///   `SSLPinningManager`.
@@ -40,7 +47,7 @@ final class APIClient: APIClientProtocol {
         decodingTo type: T.Type,
         completion: @escaping (Result<T, NetworkError>) -> Void
     ) {
-        guard let url = endpoint.url(relativeTo: baseURL) else {
+        guard let url = urlBuilder(endpoint, baseURL) else {
             completion(.failure(.invalidURL))
             return
         }

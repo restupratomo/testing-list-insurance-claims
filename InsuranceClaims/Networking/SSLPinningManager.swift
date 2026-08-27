@@ -2,6 +2,31 @@ import Alamofire
 import CommonCrypto
 import Foundation
 
+/// Wraps the three Security-framework calls used to turn a certificate into
+/// its raw SPKI bytes. Overridable so specs can force failures the Security
+/// framework itself will never actually produce for a certificate it agreed
+/// to construct in the first place (the whole reason these are defensive
+/// guards rather than force-unwraps).
+protocol PublicKeyExtracting {
+    func publicKey(for certificate: SecCertificate) -> SecKey?
+    func externalRepresentation(for key: SecKey) -> Data?
+    func attributes(for key: SecKey) -> [CFString: Any]?
+}
+
+struct RealPublicKeyExtractor: PublicKeyExtracting {
+    func publicKey(for certificate: SecCertificate) -> SecKey? {
+        SecCertificateCopyKey(certificate)
+    }
+
+    func externalRepresentation(for key: SecKey) -> Data? {
+        SecKeyCopyExternalRepresentation(key, nil) as Data?
+    }
+
+    func attributes(for key: SecKey) -> [CFString: Any]? {
+        SecKeyCopyAttributes(key) as? [CFString: Any]
+    }
+}
+
 /// Validates the server's TLS certificate against a known-good public key pin
 /// before Alamofire allows any request to complete, so a compromised or
 /// spoofed CA cannot be used to intercept claims traffic.
@@ -14,6 +39,10 @@ final class SSLPinningManager {
         ObfuscatedString("fj/LGYZh+mUuNimcCT6b6V6MLFW1SIzcsM4hgwSwVB4=").value
     ]
 
+    /// Test-only seam: specs swap this in for a mock, then restore
+    /// `RealPublicKeyExtractor()` afterward.
+    static var keyExtractor: PublicKeyExtracting = RealPublicKeyExtractor()
+
     /// Builds the trust manager Alamofire's `Session` should evaluate every
     /// connection to `pinnedHost` against.
     static func makeServerTrustManager(pinnedHost: String) -> ServerTrustManager {
@@ -23,14 +52,14 @@ final class SSLPinningManager {
     }
 
     fileprivate static func publicKeyHash(for certificate: SecCertificate) -> String? {
-        guard let publicKey = SecCertificateCopyKey(certificate),
-              let publicKeyData = SecKeyCopyExternalRepresentation(publicKey, nil) as Data? else {
+        guard let publicKey = keyExtractor.publicKey(for: certificate),
+              let publicKeyData = keyExtractor.externalRepresentation(for: publicKey) else {
             return nil
         }
 
         // Wrap the raw key bytes with the standard RSA SPKI ASN.1 header so the
         // resulting hash matches the SPKI pin published by the server operator.
-        let spkiData = SPKIHeader.header(for: publicKey) + publicKeyData
+        let spkiData = SPKIHeader.header(for: publicKey, extractor: keyExtractor) + publicKeyData
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
         spkiData.withUnsafeBytes { buffer in
             _ = CC_SHA256(buffer.baseAddress, CC_LONG(spkiData.count), &hash)
@@ -74,9 +103,9 @@ final class PublicKeyHashTrustEvaluator: ServerTrustEvaluating {
 
 /// ASN.1 headers required to turn a raw public key (as vended by Security.framework)
 /// back into a SubjectPublicKeyInfo blob, matching what `openssl x509 -pubkey` prints.
-private enum SPKIHeader {
-    static func header(for publicKey: SecKey) -> Data {
-        guard let attributes = SecKeyCopyAttributes(publicKey) as? [CFString: Any],
+enum SPKIHeader {
+    static func header(for publicKey: SecKey, extractor: PublicKeyExtracting) -> Data {
+        guard let attributes = extractor.attributes(for: publicKey),
               let keyType = attributes[kSecAttrKeyType] as? String,
               let keySizeInBits = attributes[kSecAttrKeySizeInBits] as? Int else {
             return Data()

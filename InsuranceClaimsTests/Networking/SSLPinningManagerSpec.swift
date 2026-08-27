@@ -45,9 +45,12 @@ private func makeTestRSACertificate() -> SecCertificate {
     return SecCertificateCreateWithData(nil, der as CFData)!
 }
 
-/// A self-signed DSA-2048 certificate (subject "unit-test-dsa.local") —
-/// neither RSA nor EC, so it exercises the evaluator's fallback path for an
-/// unrecognized key algorithm instead of matching either SPKI header.
+/// A self-signed DSA-2048 certificate (subject "unit-test-dsa.local"). DSA
+/// isn't supported by iOS's X.509 chain validation, so evaluating a trust
+/// built from it is rejected at the trust-evaluation step itself, before
+/// SSLPinningManager ever gets to inspect the key — this exercises that
+/// real-world rejection, while the SPKIHeader mock-based specs below cover
+/// the "unrecognized key algorithm" branch directly.
 private let testDSACertificateBase64 = """
 MIIEHTCCA8ICCQCSo+qFvx5pBjALBglghkgBZQMEAwIwHjEcMBoGA1UEAwwTdW5pdC10ZXN0LWRzYS5sb2Nhb\
 DAeFw0yNjA4MjcwNTQ0NDdaFw0zNjA4MjQwNTQ0NDdaMB4xHDAaBgNVBAMME3VuaXQtdGVzdC1kc2EubG9jYWw\
@@ -157,5 +160,105 @@ final class SSLPinningManagerSpec: QuickSpec {
                 }.to(throwError())
             }
         }
+
+        // The Security framework itself never fails these calls for a
+        // certificate it agreed to construct in the first place — these
+        // defensive guards only exist for API contracts Apple documents as
+        // "can return nil," so they're exercised here via a mocked
+        // PublicKeyExtracting rather than by trying to manufacture a
+        // certificate that corrupts them for real.
+        describe("SSLPinningManager.publicKeyHash, with a mocked key extractor") {
+            afterEach {
+                SSLPinningManager.keyExtractor = RealPublicKeyExtractor()
+            }
+
+            it("rejects the certificate when the public key itself can't be extracted") {
+                var stub = StubPublicKeyExtractor()
+                stub.publicKeyOverride = .value(nil)
+                SSLPinningManager.keyExtractor = stub
+
+                let evaluator = PublicKeyHashTrustEvaluator(pinnedHashes: [testCertificatePin])
+                expect {
+                    try evaluator.evaluate(makeSelfAnchoredTrust(), forHost: "unit-test.local")
+                }.to(throwError())
+            }
+
+            it("rejects the certificate when the key's external representation can't be extracted") {
+                var stub = StubPublicKeyExtractor()
+                stub.externalRepresentationOverride = .value(nil)
+                SSLPinningManager.keyExtractor = stub
+
+                let evaluator = PublicKeyHashTrustEvaluator(pinnedHashes: [testCertificatePin])
+                expect {
+                    try evaluator.evaluate(makeSelfAnchoredTrust(), forHost: "unit-test.local")
+                }.to(throwError())
+            }
+        }
+
+        describe("SPKIHeader.header, with a mocked key extractor") {
+            afterEach {
+                SSLPinningManager.keyExtractor = RealPublicKeyExtractor()
+            }
+
+            it("falls back to an empty header when the key's attributes can't be read") {
+                var stub = StubPublicKeyExtractor()
+                stub.attributesOverride = .value(nil)
+                SSLPinningManager.keyExtractor = stub
+
+                // A mismatched pin is expected either way — what this proves
+                // is that the whole evaluation still completes (rather than
+                // crashing) when the attributes lookup itself fails.
+                let evaluator = PublicKeyHashTrustEvaluator(pinnedHashes: [testCertificatePin])
+                expect {
+                    try evaluator.evaluate(makeSelfAnchoredTrust(), forHost: "unit-test.local")
+                }.to(throwError())
+            }
+
+            it("falls back to an empty header for a key algorithm that's neither RSA nor EC") {
+                var stub = StubPublicKeyExtractor()
+                stub.attributesOverride = .value([
+                    kSecAttrKeyType: "unsupportedAlgorithm" as CFString,
+                    kSecAttrKeySizeInBits: 256
+                ])
+                SSLPinningManager.keyExtractor = stub
+
+                let evaluator = PublicKeyHashTrustEvaluator(pinnedHashes: [testCertificatePin])
+                expect {
+                    try evaluator.evaluate(makeSelfAnchoredTrust(), forHost: "unit-test.local")
+                }.to(throwError())
+            }
+        }
+    }
+}
+
+/// Delegates to `RealPublicKeyExtractor` for whichever calls aren't
+/// overridden, so a spec can fail just one step of the extraction chain
+/// without having to fake every other value it doesn't care about. A plain
+/// `T?` can't distinguish "not overridden" from "overridden to nil", hence
+/// the explicit `Override` enum rather than a double-optional.
+private struct StubPublicKeyExtractor: PublicKeyExtracting {
+    enum Override<T> {
+        case unset
+        case value(T)
+    }
+
+    private let real = RealPublicKeyExtractor()
+    var publicKeyOverride: Override<SecKey?> = .unset
+    var externalRepresentationOverride: Override<Data?> = .unset
+    var attributesOverride: Override<[CFString: Any]?> = .unset
+
+    func publicKey(for certificate: SecCertificate) -> SecKey? {
+        if case .value(let override) = publicKeyOverride { return override }
+        return real.publicKey(for: certificate)
+    }
+
+    func externalRepresentation(for key: SecKey) -> Data? {
+        if case .value(let override) = externalRepresentationOverride { return override }
+        return real.externalRepresentation(for: key)
+    }
+
+    func attributes(for key: SecKey) -> [CFString: Any]? {
+        if case .value(let override) = attributesOverride { return override }
+        return real.attributes(for: key)
     }
 }
