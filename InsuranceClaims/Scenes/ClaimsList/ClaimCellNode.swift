@@ -42,7 +42,9 @@ final class ClaimCellNode: ASCellNode {
             string: "claim_row.metadata".localizedFormat(claim.id, claim.claimantId),
             attributes: [
                 .font: UIFont.preferredFont(forTextStyle: .caption1),
-                .foregroundColor: UIColor.adaptiveTertiaryLabel
+                // .adaptiveTertiaryLabel was too faint to read comfortably
+                // here; secondary label matches the description's contrast.
+                .foregroundColor: UIColor.adaptiveSecondaryLabel
             ]
         )
     }
