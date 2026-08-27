@@ -28,6 +28,13 @@ final class APIClient: APIClientProtocol {
         }
     }
 
+    /// Test-only seam: lets specs inject a `Session` running against a
+    /// stubbed `URLProtocol` instead of the network.
+    init(session: Session, baseURL: URL) {
+        self.session = session
+        self.baseURL = baseURL
+    }
+
     func request<T: Decodable>(
         _ endpoint: Endpoint,
         decodingTo type: T.Type,
@@ -50,7 +57,12 @@ final class APIClient: APIClientProtocol {
             }
     }
 
-    private func networkError(for error: AFError, response: HTTPURLResponse?) -> NetworkError {
+    /// Internal rather than private so specs can drive every branch directly
+    /// with synthetic `AFError` values — several of these (a genuine SSL pin
+    /// mismatch, an unrecognized Alamofire failure) can't be triggered
+    /// through a stubbed `URLProtocol`, since that bypasses the real TLS
+    /// handshake entirely.
+    func networkError(for error: AFError, response: HTTPURLResponse?) -> NetworkError {
         if case .serverTrustEvaluationFailed = error {
             return .sslPinningFailed
         }

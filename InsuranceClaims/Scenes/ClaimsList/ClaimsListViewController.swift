@@ -83,11 +83,15 @@ final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
 
     private func presentError(_ message: String) {
         let alert = UIAlertController(title: "Unable to Load Claims", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Retry", style: .default, handler: { [weak self] _ in
-            self?.viewModel.refresh()
-        }))
+        alert.addAction(UIAlertAction(title: "Retry", style: .default, handler: { [weak self] _ in self?.retryTapped() }))
         alert.addAction(UIAlertAction(title: "OK", style: .cancel))
         present(alert, animated: true)
+    }
+
+    /// Split out from the alert action's closure so specs can call it
+    /// directly instead of triggering a real tap on a presented alert.
+    func retryTapped() {
+        viewModel.refresh()
     }
 }
 

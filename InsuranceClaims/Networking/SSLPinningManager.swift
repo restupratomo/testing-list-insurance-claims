@@ -41,7 +41,10 @@ final class SSLPinningManager {
 
 /// A `ServerTrustEvaluating` that trusts a connection only when the leaf or
 /// any intermediate certificate's public key hashes to one of `pinnedHashes`.
-private final class PublicKeyHashTrustEvaluator: ServerTrustEvaluating {
+/// Internal rather than private so specs can evaluate it directly against a
+/// locally generated certificate — pinning by definition can't be exercised
+/// through a stubbed network layer.
+final class PublicKeyHashTrustEvaluator: ServerTrustEvaluating {
     private let pinnedHashes: Set<String>
 
     init(pinnedHashes: Set<String>) {

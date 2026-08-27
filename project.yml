@@ -64,6 +64,10 @@ targets:
         embed: true
       - framework: Carthage/Build/Nimble.xcframework
         embed: true
+      - framework: Carthage/Build/AsyncDisplayKit.xcframework
+        embed: true
+      - framework: Carthage/Build/Alamofire.xcframework
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.restu.insuranceclaims.tests

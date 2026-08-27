@@ -46,6 +46,19 @@ final class ClaimsListViewModelSpec: QuickSpec {
                 }
             }
 
+            context("refresh") {
+                it("discards existing claims and reloads from page 1") {
+                    service.pages[1] = .success([makeClaim(id: 1)])
+                    sut.loadFirstPage()
+
+                    service.pages[1] = .success([makeClaim(id: 99)])
+                    sut.refresh()
+
+                    expect(sut.visibleClaims).to(equal([makeClaim(id: 99)]))
+                    expect(service.requestedPages).to(equal([1, 1]))
+                }
+            }
+
             context("when a page fails to load") {
                 it("exposes the error's user-facing message as state") {
                     service.pages[1] = .failure(.server(statusCode: 500))

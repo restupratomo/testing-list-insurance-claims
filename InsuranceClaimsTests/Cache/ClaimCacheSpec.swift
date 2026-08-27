@@ -15,6 +15,10 @@ final class ClaimCacheSpec: QuickSpec {
             context("with a normal time-to-live") {
                 beforeEach {
                     sut = ClaimCache(timeToLive: 60)
+                    // Guards against leftover data on disk from a previous
+                    // run of the real app in the same simulator, which
+                    // shares this cache directory.
+                    sut.invalidateAll()
                 }
 
                 it("returns nil for a page that was never stored") {
