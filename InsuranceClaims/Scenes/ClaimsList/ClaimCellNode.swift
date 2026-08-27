@@ -4,6 +4,10 @@ import AsyncDisplayKit
 /// preview, and the claim/claimant identifiers, laid out with Texture's
 /// automatic layout system so cell sizing stays off the main thread.
 final class ClaimCellNode: ASCellNode {
+    /// Shared with the separator's insets so the divider lines up with the
+    /// content's left/right edges instead of running edge-to-edge.
+    private static let horizontalContentInset: CGFloat = 16
+
     private let titleNode = ASTextNode()
     private let descriptionNode = ASTextNode()
     private let metadataNode = ASTextNode()
@@ -52,17 +56,34 @@ final class ClaimCellNode: ASCellNode {
         )
 
         let insetText = ASInsetLayoutSpec(
-            insets: UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16),
+            insets: UIEdgeInsets(
+                top: 12,
+                left: Self.horizontalContentInset,
+                bottom: 12,
+                right: Self.horizontalContentInset
+            ),
             child: textStack
         )
 
-        separatorNode.style.height = ASDimensionMake(1.0 / UIScreen.main.scale)
+        // A full point, not a hairline, so the grey divider between rows
+        // reads clearly rather than disappearing at a glance.
+        separatorNode.style.height = ASDimensionMake(1.0)
+        let insetSeparator = ASInsetLayoutSpec(
+            insets: UIEdgeInsets(
+                top: 0,
+                left: Self.horizontalContentInset,
+                bottom: 0,
+                right: Self.horizontalContentInset
+            ),
+            child: separatorNode
+        )
+
         return ASStackLayoutSpec(
             direction: .vertical,
             spacing: 0,
             justifyContent: .start,
             alignItems: .stretch,
-            children: [insetText, separatorNode]
+            children: [insetText, insetSeparator]
         )
     }
 }
