@@ -1,6 +1,6 @@
-import Quick
-import Nimble
 @testable import InsuranceClaims
+import Nimble
+import Quick
 
 private final class ClaimServiceStub: ClaimServiceProtocol {
     var pages: [Int: Result<[Claim], NetworkError>] = [:]

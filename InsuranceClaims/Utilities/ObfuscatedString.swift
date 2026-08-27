@@ -16,6 +16,7 @@ struct ObfuscatedString {
 
     var value: String {
         let decoded = bytes.map { $0 ^ key }
-        return String(decoding: decoded, as: UTF8.self)
+        // Not a Data->String conversion — decoding raw XOR-unmasked bytes.
+        return String(decoding: decoded, as: UTF8.self) // swiftlint:disable:this optional_data_string_conversion
     }
 }

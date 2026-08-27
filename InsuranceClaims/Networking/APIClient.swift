@@ -1,5 +1,5 @@
-import Foundation
 import Alamofire
+import Foundation
 
 /// Thin wrapper around Alamofire that performs a request and decodes the
 /// JSON response, translating transport-level failures into `NetworkError`.

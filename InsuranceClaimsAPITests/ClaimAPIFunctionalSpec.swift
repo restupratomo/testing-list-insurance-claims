@@ -1,6 +1,6 @@
-import Quick
-import Nimble
 @testable import InsuranceClaims
+import Nimble
+import Quick
 
 /// Functional test that exercises the real JSONPlaceholder API end-to-end,
 /// as opposed to the unit specs which stub the network entirely. Requires

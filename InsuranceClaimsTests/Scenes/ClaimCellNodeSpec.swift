@@ -1,7 +1,7 @@
-import Quick
-import Nimble
 import AsyncDisplayKit
 @testable import InsuranceClaims
+import Nimble
+import Quick
 
 final class ClaimCellNodeSpec: QuickSpec {
     override class func spec() {

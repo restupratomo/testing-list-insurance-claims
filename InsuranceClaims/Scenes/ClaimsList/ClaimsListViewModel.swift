@@ -1,6 +1,6 @@
 import Foundation
-import RxSwift
 import RxRelay
+import RxSwift
 
 /// Minimum number of characters the user must type before a search query is
 /// applied — short queries mostly just re-run the filter on almost every

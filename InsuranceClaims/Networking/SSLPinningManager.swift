@@ -1,6 +1,6 @@
-import Foundation
-import CommonCrypto
 import Alamofire
+import CommonCrypto
+import Foundation
 
 /// Validates the server's TLS certificate against a known-good public key pin
 /// before Alamofire allows any request to complete, so a compromised or

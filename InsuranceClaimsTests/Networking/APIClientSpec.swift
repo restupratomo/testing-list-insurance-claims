@@ -1,7 +1,7 @@
-import Quick
-import Nimble
 import Alamofire
 @testable import InsuranceClaims
+import Nimble
+import Quick
 
 final class APIClientSpec: QuickSpec {
     override class func spec() {
@@ -34,9 +34,9 @@ final class APIClientSpec: QuickSpec {
 
             context("when the server returns a decodable, successful response") {
                 it("completes with the decoded value") {
-                    let json = """
+                    let json = Data("""
                     [{"userId":1,"id":2,"title":"Vehicle damage","body":"Hit from behind"}]
-                    """.data(using: .utf8)!
+                    """.utf8)
 
                     StubURLProtocol.handler = { request in
                         (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, json)
@@ -72,7 +72,7 @@ final class APIClientSpec: QuickSpec {
 
             context("when the server returns a 2xx response with unparseable JSON") {
                 it("completes with a decoding error") {
-                    let malformed = "not json".data(using: .utf8)!
+                    let malformed = Data("not json".utf8)
                     StubURLProtocol.handler = { request in
                         (HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!, malformed)
                     }
@@ -133,7 +133,12 @@ final class APIClientSpec: QuickSpec {
 
             it("maps a non-2xx response status to a server error, regardless of the AFError case") {
                 let error = AFError.explicitlyCancelled
-                let response = HTTPURLResponse(url: URL(string: "https://example.com")!, statusCode: 404, httpVersion: nil, headerFields: nil)
+                let response = HTTPURLResponse(
+                    url: URL(string: "https://example.com")!,
+                    statusCode: 404,
+                    httpVersion: nil,
+                    headerFields: nil
+                )
                 expect(sut.networkError(for: error, response: response)).to(equal(.server(statusCode: 404)))
             }
 

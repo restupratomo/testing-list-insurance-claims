@@ -1,7 +1,7 @@
-import Quick
-import Nimble
-import Security
 @testable import InsuranceClaims
+import Nimble
+import Quick
+import Security
 
 /// A self-signed EC P-256 certificate generated offline for these specs
 /// (subject "unit-test.local", 10-year validity). Its SPKI SHA-256 pin,

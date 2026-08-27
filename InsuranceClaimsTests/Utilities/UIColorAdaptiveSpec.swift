@@ -1,7 +1,7 @@
-import Quick
-import Nimble
-import UIKit
 @testable import InsuranceClaims
+import Nimble
+import Quick
+import UIKit
 
 private struct MockOSVersionChecker: OSVersionChecking {
     let isIOS13OrLater: Bool

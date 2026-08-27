@@ -1,8 +1,8 @@
-import Quick
-import Nimble
-import UIKit
 import AsyncDisplayKit
 @testable import InsuranceClaims
+import Nimble
+import Quick
+import UIKit
 
 private final class ClaimServiceStub: ClaimServiceProtocol {
     var result: Result<[Claim], NetworkError> = .success([])

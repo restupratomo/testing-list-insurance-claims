@@ -1,7 +1,7 @@
-import Quick
-import Nimble
-import UIKit
 @testable import InsuranceClaims
+import Nimble
+import Quick
+import UIKit
 
 private final class NoOpClaimService: ClaimServiceProtocol {
     func fetchClaims(page: Int, completion: @escaping (Result<[Claim], NetworkError>) -> Void) {

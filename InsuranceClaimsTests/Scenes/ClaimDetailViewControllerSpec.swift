@@ -1,6 +1,6 @@
-import Quick
-import Nimble
 @testable import InsuranceClaims
+import Nimble
+import Quick
 
 final class ClaimDetailViewControllerSpec: QuickSpec {
     override class func spec() {
