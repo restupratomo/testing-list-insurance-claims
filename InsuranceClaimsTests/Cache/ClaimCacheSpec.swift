@@ -3,7 +3,7 @@ import Nimble
 @testable import InsuranceClaims
 
 final class ClaimCacheSpec: QuickSpec {
-    override func spec() {
+    override class func spec() {
         describe("ClaimCache") {
             var sut: ClaimCache!
             let claim = Claim(claimantId: 10, id: 20, title: "Water damage", description: "Pipe burst in the kitchen")

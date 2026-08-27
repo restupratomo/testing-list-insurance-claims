@@ -17,7 +17,7 @@ private func makeClaim(id: Int, title: String = "Claim", description: String = "
 }
 
 final class ClaimsListViewModelSpec: QuickSpec {
-    override func spec() {
+    override class func spec() {
         describe("ClaimsListViewModel") {
             var service: ClaimServiceStub!
             var sut: ClaimsListViewModel!

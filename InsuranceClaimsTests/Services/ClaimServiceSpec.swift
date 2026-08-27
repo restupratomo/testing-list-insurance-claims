@@ -3,7 +3,7 @@ import Nimble
 @testable import InsuranceClaims
 
 final class ClaimServiceSpec: QuickSpec {
-    override func spec() {
+    override class func spec() {
         describe("ClaimService") {
             var apiClient: APIClientMock!
             var cache: ClaimCacheMock!

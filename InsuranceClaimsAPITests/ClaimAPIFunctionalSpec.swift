@@ -7,7 +7,7 @@ import Nimble
 /// network access; skipped assertions here would indicate an environment
 /// problem rather than a regression in app code.
 final class ClaimAPIFunctionalSpec: QuickSpec {
-    override func spec() {
+    override class func spec() {
         describe("the live claims API") {
             var apiClient: APIClient!
 
