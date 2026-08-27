@@ -79,10 +79,6 @@ jobs:
             -destination "id=${{ steps.destination.outputs.udid }}" \
             -enableCodeCoverage YES \
             -only-testing:InsuranceClaimsTests \
-            -skip-testing:InsuranceClaimsTests/ClaimCellNodeSpec \
-            -skip-testing:InsuranceClaimsTests/ClaimDetailContentNodeSpec \
-            -skip-testing:InsuranceClaimsTests/ClaimDetailViewControllerSpec \
-            -skip-testing:InsuranceClaimsTests/ClaimsListViewControllerSpec \
             test
 
       - name: Upload test results
