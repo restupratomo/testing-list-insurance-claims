@@ -1,0 +1,152 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-build-test:
+    name: Lint, build and unit test
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install XcodeGen and SwiftLint
+        run: brew install xcodegen swiftlint
+
+      - name: Cache Carthage dependencies
+        id: carthage-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            Carthage/Build
+            ~/Library/Caches/org.carthage.CarthageKit
+          key: carthage-${{ runner.os }}-${{ hashFiles('Cartfile.resolved') }}
+          restore-keys: |
+            carthage-${{ runner.os }}-
+
+      - name: Carthage bootstrap
+        run: |
+          carthage bootstrap --platform iOS --use-xcframeworks --no-use-binaries --cache-builds
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: SwiftLint
+        run: swiftlint lint --strict
+
+      - name: Pick a simulator destination
+        id: destination
+        run: |
+          UDID=$(xcrun simctl list devices available -j \
+            | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          for runtime, devices in data["devices"].items():
+              if "iOS" not in runtime:
+                  continue
+              for d in devices:
+                  if d["name"].startswith("iPhone"):
+                      print(d["udid"])
+                      sys.exit(0)
+          sys.exit(1)
+          ')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
+      - name: Build and run unit tests
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project InsuranceClaims.xcodeproj \
+            -scheme InsuranceClaims \
+            -sdk iphonesimulator \
+            -destination "id=${{ steps.destination.outputs.udid }}" \
+            -enableCodeCoverage YES \
+            -only-testing:InsuranceClaimsTests \
+            test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: ~/Library/Developer/Xcode/DerivedData/**/Logs/Test/*.xcresult
+          retention-days: 7
+
+  functional-api-tests:
+    name: Functional API tests (live network)
+    runs-on: macos-15
+    timeout-minutes: 30
+    # These hit the real JSONPlaceholder API, so a transient outage there
+    # shouldn't block merges the way a real regression should.
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Cache Carthage dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            Carthage/Build
+            ~/Library/Caches/org.carthage.CarthageKit
+          key: carthage-${{ runner.os }}-${{ hashFiles('Cartfile.resolved') }}
+          restore-keys: |
+            carthage-${{ runner.os }}-
+
+      - name: Carthage bootstrap
+        run: |
+          carthage bootstrap --platform iOS --use-xcframeworks --no-use-binaries --cache-builds
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Pick a simulator destination
+        id: destination
+        run: |
+          UDID=$(xcrun simctl list devices available -j \
+            | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          for runtime, devices in data["devices"].items():
+              if "iOS" not in runtime:
+                  continue
+              for d in devices:
+                  if d["name"].startswith("iPhone"):
+                      print(d["udid"])
+                      sys.exit(0)
+          sys.exit(1)
+          ')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
+      - name: Build and run functional API tests
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project InsuranceClaims.xcodeproj \
+            -scheme InsuranceClaims \
+            -sdk iphonesimulator \
+            -destination "id=${{ steps.destination.outputs.udid }}" \
+            -only-testing:InsuranceClaimsAPITests \
+            test

@@ -1,5 +1,7 @@
 # Insurance Claims
 
+[![CI](https://github.com/restupratomo/testing-list-insurance-claims/actions/workflows/ci.yml/badge.svg)](https://github.com/restupratomo/testing-list-insurance-claims/actions/workflows/ci.yml)
+
 An iOS app that lists and displays insurance claims, backed by the
 [JSONPlaceholder](https://jsonplaceholder.typicode.com/posts) `/posts` endpoint
 used as mock claims data.
@@ -86,10 +88,29 @@ list isn't re-filtered on every keystroke.
   EC/RSA/DSA test certificates), the cache, both view models, the coordinator,
   the Texture cell/content nodes, and the list view controller's data source,
   delegate and error-recovery paths — currently ~98% line coverage on the app
-  target. Some lines are intentionally left uncovered rather than chasing
-  100% with fragile tests: `required init?(coder:)` boilerplate that calls
-  `fatalError()`, and a couple of defensive `Security`-framework guards that
-  only fire for certificate failures a valid test certificate can't produce.
+  target. The remaining uncovered lines are the `required init?(coder:)`
+  boilerplate every `UIViewController` subclass with a custom `init` must
+  implement — it calls `fatalError()`, so no test can invoke it without
+  crashing the process. Every other branch, including defensive
+  `Security`-framework guards that a valid certificate can't naturally
+  trigger, is covered via dependency-injection seams (`APIClient.urlBuilder`,
+  `SSLPinningManager.keyExtractor`, `AdaptiveColorEnvironment`).
+
+## CI/CD
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull
+request to `main`/`master`:
+
+- **Lint, build and unit test** — SwiftLint (`--strict`), then builds the app
+  and runs `InsuranceClaimsTests` with code coverage enabled. This job must
+  pass.
+- **Functional API tests** — runs `InsuranceClaimsAPITests` against the live
+  JSONPlaceholder API. Allowed to fail without blocking the pipeline, since a
+  failure there can mean the third-party API is down rather than a
+  regression in this repo.
+
+Both jobs cache `Carthage/Build` keyed on `Cartfile.resolved`, so dependency
+builds are skipped on unchanged commits.
 - **Functional API tests** (`InsuranceClaimsAPITests`) — Quick/Nimble specs
   that call the live JSONPlaceholder API and assert on page size, field
   population and pagination behavior.
