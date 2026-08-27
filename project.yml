@@ -75,6 +75,7 @@ targets:
             echo "warning: SwiftLint not installed. Run 'brew install swiftlint'."
           fi
         name: SwiftLint
+        basedOnDependencyAnalysis: false
 
   InsuranceClaimsTests:
     type: bundle.unit-test
