@@ -7,11 +7,13 @@ final class ClaimCellNode: ASCellNode {
     private let titleNode = ASTextNode()
     private let descriptionNode = ASTextNode()
     private let metadataNode = ASTextNode()
+    private let separatorNode = ASDisplayNode()
 
     init(claim: Claim) {
         super.init()
         automaticallyManagesSubnodes = true
         selectionStyle = .default
+        separatorNode.backgroundColor = .adaptiveSeparator
 
         titleNode.attributedText = NSAttributedString(
             string: claim.title.capitalized,
@@ -49,9 +51,18 @@ final class ClaimCellNode: ASCellNode {
             children: [titleNode, descriptionNode, metadataNode]
         )
 
-        return ASInsetLayoutSpec(
+        let insetText = ASInsetLayoutSpec(
             insets: UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16),
             child: textStack
+        )
+
+        separatorNode.style.height = ASDimensionMake(1.0 / UIScreen.main.scale)
+        return ASStackLayoutSpec(
+            direction: .vertical,
+            spacing: 0,
+            justifyContent: .start,
+            alignItems: .stretch,
+            children: [insetText, separatorNode]
         )
     }
 }

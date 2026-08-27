@@ -106,7 +106,7 @@ extension ClaimsListViewController: ASCollectionDataSource {
 
 // MARK: - ASCollectionDelegate
 
-extension ClaimsListViewController: ASCollectionDelegate {
+extension ClaimsListViewController: ASCollectionDelegateFlowLayout {
     func collectionNode(_ collectionNode: ASCollectionNode, didSelectItemAt indexPath: IndexPath) {
         collectionNode.deselectItem(at: indexPath, animated: true)
         viewModel.selectClaim(at: indexPath.item)
@@ -115,6 +115,20 @@ extension ClaimsListViewController: ASCollectionDelegate {
     func collectionNode(_ collectionNode: ASCollectionNode, willDisplayItemWith node: ASCellNode) {
         guard let indexPath = collectionNode.indexPath(for: node) else { return }
         viewModel.loadMoreIfNeeded(currentIndex: indexPath.item)
+    }
+
+    // Flow layout's automatic sizing measures each cell at its intrinsic
+    // content width, which packs rows side-by-side instead of stacking them.
+    // Forcing every cell to the collection's full width keeps rows full-bleed.
+    func collectionNode(
+        _ collectionNode: ASCollectionNode,
+        constrainedSizeForItemAt indexPath: IndexPath
+    ) -> ASSizeRange {
+        let width = collectionNode.bounds.width
+        return ASSizeRange(
+            min: CGSize(width: width, height: 0),
+            max: CGSize(width: width, height: .greatestFiniteMagnitude)
+        )
     }
 }
 
