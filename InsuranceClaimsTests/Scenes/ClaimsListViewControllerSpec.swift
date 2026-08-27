@@ -12,6 +12,17 @@ private final class ClaimServiceStub: ClaimServiceProtocol {
     }
 }
 
+/// Captures the completion handler instead of calling it, so a spec can
+/// inspect UI state *while a fetch is still in flight* — something the
+/// synchronously-resolving `ClaimServiceStub` above can never observe.
+private final class DeferredClaimServiceStub: ClaimServiceProtocol {
+    private(set) var pendingCompletion: ((Result<[Claim], NetworkError>) -> Void)?
+
+    func fetchClaims(page: Int, completion: @escaping (Result<[Claim], NetworkError>) -> Void) {
+        pendingCompletion = completion
+    }
+}
+
 final class ClaimsListViewControllerSpec: QuickSpec {
     override class func spec() {
         describe("ClaimsListViewController") {
@@ -29,6 +40,32 @@ final class ClaimsListViewControllerSpec: QuickSpec {
                 expect(sut.title).to(equal("Insurance Claims"))
             }
 
+            describe("the loading spinner") {
+                it("animates while the first page is still being fetched, and stops once it resolves") {
+                    let deferredService = DeferredClaimServiceStub()
+                    let deferredViewModel = ClaimsListViewModel(claimService: deferredService, coordinator: nil)
+                    let deferredSut = ClaimsListViewController(viewModel: deferredViewModel)
+
+                    deferredSut.loadViewIfNeeded()
+                    expect(deferredSut.activityIndicator.isAnimating).to(beTrue())
+
+                    deferredService.pendingCompletion?(.success([]))
+                    expect(deferredSut.activityIndicator.isAnimating).to(beFalse())
+                }
+
+                it("stops once the fetch fails, rather than spinning forever") {
+                    let deferredService = DeferredClaimServiceStub()
+                    let deferredViewModel = ClaimsListViewModel(claimService: deferredService, coordinator: nil)
+                    let deferredSut = ClaimsListViewController(viewModel: deferredViewModel)
+
+                    deferredSut.loadViewIfNeeded()
+                    expect(deferredSut.activityIndicator.isAnimating).to(beTrue())
+
+                    deferredService.pendingCompletion?(.failure(.server(statusCode: 500)))
+                    expect(deferredSut.activityIndicator.isAnimating).to(beFalse())
+                }
+            }
+
             context("once the view loads and claims are fetched") {
                 beforeEach {
                     let claims = (1...3).map {
@@ -36,6 +73,10 @@ final class ClaimsListViewControllerSpec: QuickSpec {
                     }
                     service.result = .success(claims)
                     sut.loadViewIfNeeded()
+                }
+
+                it("has stopped animating the loading spinner once claims arrive") {
+                    expect(sut.activityIndicator.isAnimating).to(beFalse())
                 }
 
                 it("reports one row per visible claim to the collection data source") {

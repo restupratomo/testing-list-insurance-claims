@@ -9,7 +9,20 @@ final class ClaimsListViewController: ASDKViewController<ASCollectionNode> {
     private let viewModel: ClaimsListViewModel
     private let collectionNode: ASCollectionNode
     private let searchController = UISearchController(searchResultsController: nil)
-    private let activityIndicator = UIActivityIndicatorView(style: .gray)
+    /// Internal rather than private so specs can assert on `isAnimating`
+    /// directly instead of only inferring it from view model state.
+    /// `.large` is iOS 13+; `.whiteLarge` is its iOS 12 predecessor, given a
+    /// visible tint since white-on-white would otherwise be invisible.
+    let activityIndicator: UIActivityIndicatorView = {
+        let indicator: UIActivityIndicatorView
+        if #available(iOS 13.0, *) {
+            indicator = UIActivityIndicatorView(style: .large)
+        } else {
+            indicator = UIActivityIndicatorView(style: .whiteLarge)
+        }
+        indicator.color = .adaptiveLabel
+        return indicator
+    }()
     private let disposeBag = DisposeBag()
 
     init(viewModel: ClaimsListViewModel) {
